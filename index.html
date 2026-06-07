@@ -2,9 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>For My Love ❤️</title>
+<title>For You ❤️</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <style>
 body {
     font-family: 'Segoe UI', sans-serif;
@@ -45,9 +44,6 @@ button {
     cursor: pointer;
     margin-top: 10px;
 }
-button:hover {
-    background: #e63950;
-}
 img {
     max-width: 100%;
     border-radius: 12px;
@@ -56,42 +52,29 @@ img {
 }
 audio {
     width: 100%;
-    margin-top: 10px;
 }
-#viewer {
-    display: none;
-}
-.footer {
-    text-align: center;
-    font-size: 14px;
-    color: #666;
-}
+#viewer { display: none; }
 </style>
 </head>
 <body>
 
 <div class="container">
 
-<!-- CREATOR MODE -->
+<!-- CREATOR -->
 <div class="card" id="creator">
     <h1>Create Sweet Message ❤️</h1>
 
-    <label>💌 Long Sweet Message</label>
-    <textarea id="message" rows="6"></textarea>
-
-    <label>🖼️ Upload Picture</label>
+    <textarea id="message" rows="5" placeholder="Write your sweet message..."></textarea>
     <input type="file" id="image" accept="image/*">
-
-    <label>🎶 Upload Favorite Song</label>
     <input type="file" id="song" accept="audio/*">
 
-    <button onclick="generateLink()">Generate Viewer Link</button>
+    <button onclick="saveContent()">Save & Generate Link</button>
 
-    <p><strong>Generated Link:</strong></p>
-    <input type="text" id="linkOutput" readonly>
+    <p><strong>Viewer Link:</strong></p>
+    <input type="text" value="?view=1" readonly>
 </div>
 
-<!-- VIEWER MODE -->
+<!-- VIEWER -->
 <div id="viewer">
     <div class="card">
         <h1>For You ❤️</h1>
@@ -106,76 +89,49 @@ audio {
     <div class="card">
         <h2>Our Song 🎶</h2>
         <audio id="viewSong" controls></audio>
-        <p style="text-align:center;font-size:14px;">
-            Press ▶️ and listen with love ❤️
-        </p>
-    </div>
-
-    <div class="footer">
-        Made with ❤️ just for you
+        <p style="text-align:center;font-size:14px;">Press ▶️ and feel the love ❤️</p>
     </div>
 </div>
 
 </div>
 
 <script>
-function generateLink() {
-    const message = encodeURIComponent(
-        document.getElementById("message").value
-    );
-    const imgFile = document.getElementById("image").files[0];
-    const songFile = document.getElementById("song").files[0];
+function saveContent() {
+    const msg = document.getElementById("message").value;
+    const img = document.getElementById("image").files[0];
+    const song = document.getElementById("song").files[0];
 
-    if (!message || !imgFile || !songFile) {
-        alert("Please complete all fields ❤️");
+    if (!msg || !img || !song) {
+        alert("Complete everything ❤️");
         return;
     }
 
+    localStorage.setItem("message", msg);
+
     const imgReader = new FileReader();
+    imgReader.onload = () => localStorage.setItem("image", imgReader.result);
+    imgReader.readAsDataURL(img);
+
     const songReader = new FileReader();
+    songReader.onload = () => localStorage.setItem("song", songReader.result);
+    songReader.readAsDataURL(song);
 
-    imgReader.onload = () => {
-        songReader.onload = () => {
-            const imgData = encodeURIComponent(imgReader.result);
-            const songData = encodeURIComponent(songReader.result);
-
-            const link =
-                location.origin +
-                location.pathname +
-                "?view=1&msg=" +
-                message +
-                "&img=" +
-                imgData +
-                "&song=" +
-                songData;
-
-            document.getElementById("linkOutput").value = link;
-        };
-        songReader.readAsDataURL(songFile);
-    };
-    imgReader.readAsDataURL(imgFile);
+    alert("Saved! Send this link: ?view=1 ❤️");
 }
 
-// VIEWER MODE
-const params = new URLSearchParams(window.location.search);
-if (params.get("view") === "1") {
+// VIEW MODE
+if (new URLSearchParams(location.search).get("view") === "1") {
     document.getElementById("creator").style.display = "none";
     document.getElementById("viewer").style.display = "block";
 
-    document.getElementById("viewMessage").innerText =
-        decodeURIComponent(params.get("msg"));
+    document.getElementById("viewMessage").innerText = localStorage.getItem("message");
+    document.getElementById("viewImage").src = localStorage.getItem("image");
+    document.getElementById("viewSong").src = localStorage.getItem("song");
 
-    document.getElementById("viewImage").src =
-        decodeURIComponent(params.get("img"));
-
-    document.getElementById("viewSong").src =
-        decodeURIComponent(params.get("song"));
-
-    // Play after first click (browser safe)
     document.body.addEventListener("click", () => {
         const song = document.getElementById("viewSong");
-        if (song.paused) song.play().catch(() => {});
-    }, { once: true });
+        if (song.paused) song.play().catch(()=>{});
+    }, { once:true });
 }
 </script>
 
